@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <link rel="shortcut icon" href="https://i2.hdslb.com/bfs/face/0897c87020b1031ec6494f77f5403f655ee380b6.jpg">
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="{{ url_for('static', filename='js/ajax_test.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/check_queue.js') }}"></script>
         <div class="container">
             <section id="main_content">
     </head>
@@ -16,7 +16,7 @@
             <h1><b>Bot - Reborn</b></h1>
         </header>
         <div class="container">
-            <form action="/bot/get_jmid" method="post">
+            <form action="/bot/get_jmid" method="post" id="form_jmid">
                 <div class="form-group">
                     <label for="jmid">输入带jmid的字符串</label>
                     <input type="text" id="jmid" name="jmid" required>
@@ -25,7 +25,9 @@
                     <button type="submit">提交</button>
                 </div>
             </form>
-            <form action="/bot/get_pixiv_img_from_id" method="post">
+            <div id="jm_ajax_response"></div>
+
+            <form action="/bot/get_pixiv_img_from_id" method="post" id="form_pid">
                 <div class="form-group">
                     <label for="pid">输入带pid的字符串</label>
                     <input type="text" id="pid" name="pid" required>
@@ -34,6 +36,7 @@
                     <button type="submit">提交</button>
                 </div>
             </form>
+            <div id="pixiv_ajax_response"></div>
 
             <!--
             <h1>Flask Ajax Example</h1>

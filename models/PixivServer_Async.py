@@ -7,13 +7,17 @@ from BetterPixiv_Async import BetterPixiv
 
 async def create_action(api: BetterPixiv, command: str, *args) -> dict:
     respone = {'status': 'success', 'result': []}
+    sudo = False
+    if command == 'dl_sudo':
+        command = 'dl'
+        sudo = True
     if command == 'dl':
         if len(args) < 1:
             respone['status'] = 'failed'
             respone['result'] = ['Missing Params']
             return respone
         work_id = args[0]
-        dl_status = await api.download(work_id)
+        dl_status = await api.download(work_id, sudo=sudo)
         respone['result'] = dl_status['paths']
         if dl_status['total'] == 0 or dl_status['total'] - dl_status['success'] != 0:
             respone['status'] = 'failed'
@@ -78,6 +82,14 @@ async def zmq_server(socket: zmq.Context.socket, queue: asyncio.Queue):
             if message['type'] == 'shutdown':
                 response['status'] = 'failed'
                 response['reason'] = 'No authority'
+                socket.send_json(response)
+                continue
+            elif message['type'] == 'chk_queue':
+                response = {
+                    'type': message['type'],
+                    'status': 'success',
+                    'result': queue.qsize()
+                }
                 socket.send_json(response)
                 continue
             socket.send_json(response)

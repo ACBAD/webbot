@@ -41,7 +41,6 @@ def proc_pixiv_fun(command, **kwargs) -> dict:
         pixiv_req_socket.send_json(req_msg)
         message = pixiv_req_socket.recv_json()
         if message["type"] == 'error' or message['type'] == 'failed':
-
             return message
         socks = dict(poller.poll(10000))
         message = ''
@@ -52,6 +51,13 @@ def proc_pixiv_fun(command, **kwargs) -> dict:
                 'status': 'failed',
                 'result': ['Timeout']
             }
+    elif command == 'chk_queue':
+        req_msg = {
+            'type': 'chk_queue',
+            'args': []
+        }
+        pixiv_req_socket.send_json(req_msg)
+        message = pixiv_req_socket.recv_json()
     return message
 
 @app.route('/')
@@ -83,12 +89,6 @@ def get_jmid():
         return f'{pure_rep["result"]}<br>{ori_rep["result"]}'
     else:
         return 'Not Found'
-
-@app.route('/ajax_test', methods=['POST'])
-def ajax():
-    data = flask.request.get_json()
-    response = {'message': f"Hello, {data['name']}!"}
-    return flask.jsonify(response)
 
 @app.route('/get_pixiv_img_from_id', methods=['POST'])
 def get_pixiv_img_from_id():
@@ -143,6 +143,24 @@ def test_img():
         flask.url_for('static', filename='yuuka.png')
     ]
     return flask.render_template('show_img.html', image_urls=img_urls)
+
+@app.route('/ajax_test', methods=['POST'])
+def ajax_test():
+    data = flask.request.get_json()
+    response = {'message': f"Hello, {data['name']}!"}
+    return flask.jsonify(response)
+
+@app.route('/req_queue')
+def req_queue():
+    data = flask.request.get_json()
+    response = {'message': 'error:请联系管理员'}
+    if data['type'] == 'jm':
+        response = {'message': 'jm目前不需要使用队列，所以慢慢等就行'}
+    elif data['type'] == 'pixiv':
+        result = proc_pixiv_fun('chk_queue')
+        if result['status'] == 'success':
+            response = {'message': f'目前pixiv队列里有{result["result"]}个请求'}
+    return flask.jsonify(response)
 
 @app.route('/random_img/<path:filename>')
 def random_img(filename):
