@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--安全审查干扰~~-->
+<meta name="referrer" content="no-referrer">
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link rel="shortcut icon" href="https://i2.hdslb.com/bfs/face/0897c87020b1031ec6494f77f5403f655ee380b6.jpg">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="{{ url_for('static', filename='js/ajax_test.js') }}"></script>
+        <div class="container">
+            <section id="main_content">
+    </head>
+    <body>
+        <header>
+            <h1><b>Bot - Reborn</b></h1>
+        </header>
+        <div class="container">
+            <form action="/bot/get_jmid" method="post">
+                <div class="form-group">
+                    <label for="jmid">输入带jmid的字符串</label>
+                    <input type="text" id="jmid" name="jmid" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit">提交</button>
+                </div>
+            </form>
+            <form action="/bot/get_pixiv_img_from_id" method="post">
+                <div class="form-group">
+                    <label for="pid">输入带pid的字符串</label>
+                    <input type="text" id="pid" name="pid" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit">提交</button>
+                </div>
+            </form>
+
+            <!--
+            <h1>Flask Ajax Example</h1>
+            <form id="ajax-form">
+                <label for="name">Enter your name:</label>
+                <input type="text" id="name" name="name">
+                <button type="submit">Submit</button>
+            </form>
+            <div id="response"></div>
+            -->
+
+            <h1>随机美图</h1>
+            <img alt="Image" src="{{ random_img_url }}" style="width:400px;height:auto;">
+            <br>
+            <h1><a download href="{{ random_img_url }}">下载图片</a></h1>
+        </div>
+    </body>
+</html>

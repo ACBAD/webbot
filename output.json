@@ -1,0 +1,42 @@
+{
+  'access_token': 'qMJVgyTaLHRjR4G5fzkibjYAbtEhrNZxTvoP2NbaGoM',
+  'expires_in': 3600,
+  'token_type': 'bearer',
+  'scope': '',
+  'refresh_token': 'a4TF-gC5kRkciAiZ5MhGUoVw6zb3AXO1M1DmnAeFGlk',
+  'user': {
+    'profile_image_urls': {
+      'px_16x16': 'https://s.pximg.net/common/images/no_profile_ss.png',
+      'px_50x50': 'https://s.pximg.net/common/images/no_profile_s.png',
+      'px_170x170': 'https://s.pximg.net/common/images/no_profile.png'
+    },
+    'id': '88725668',
+    'name': 'non name',
+    'account': 'unnamed312',
+    'mail_address': '1w1d4n5m1d4@gmail.com',
+    'is_premium': False,
+    'x_restrict': 2,
+    'is_mail_authorized': True
+  },
+  'response': {
+    'access_token': 'qMJVgyTaLHRjR4G5fzkibjYAbtEhrNZxTvoP2NbaGoM',
+    'expires_in': 3600,
+    'token_type': 'bearer',
+    'scope': '',
+    'refresh_token': 'a4TF-gC5kRkciAiZ5MhGUoVw6zb3AXO1M1DmnAeFGlk',
+    'user': {
+      'profile_image_urls': {
+        'px_16x16': 'https://s.pximg.net/common/images/no_profile_ss.png',
+        'px_50x50': 'https://s.pximg.net/common/images/no_profile_s.png',
+        'px_170x170': 'https://s.pximg.net/common/images/no_profile.png'
+      },
+      'id': '88725668',
+      'name': 'non name',
+      'account': 'unnamed312',
+      'mail_address': '1w1d4n5m1d4@gmail.com',
+      'is_premium': False,
+      'x_restrict': 2,
+      'is_mail_authorized': True
+    }
+  }
+}

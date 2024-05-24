@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Show Images</title>
+</head>
+<body>
+    <h1>你的搜图结果</h1>
+    <div>
+        {% for image_url in image_urls %}
+            <div style="margin-bottom: 20px;">
+                <img src="{{ image_url }}" alt="Image" style="width:600px;height:auto;">
+                <br>
+                <h1><a href="{{ image_url }}" download>下载图片</a></h1>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
