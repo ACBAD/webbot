@@ -1,4 +1,5 @@
 import requests
+from app import search_img_upload
 
 
 def req_generate_img():
@@ -38,7 +39,7 @@ if __name__ == '__main__':
     output_type = 'console'
     calling_func = check_validation
     if output_type == 'console':
-        print(calling_func())
+        print(search_img_upload('8ea3fb48a15dce42ecf3d33d8b23fa27'))
     elif output_type == 'file':
         with open('output.json', 'w', encoding='utf-8') as file:
             file.write(calling_func())

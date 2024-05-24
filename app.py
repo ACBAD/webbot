@@ -1,8 +1,8 @@
+import json
 import os
 import platform
 import random
 import re
-
 import flask
 import requests
 import zmq
@@ -27,17 +27,8 @@ else:
     curdir = '/var/www/webbot'
 
 app.config['UPLOAD_FOLDER'] = os.path.join(curdir, 'uploads')
-
-
-def extract_useful_id(result_dict) -> int:
-    index_id = result_dict['header']['index_id']
-    similarity = result_dict['header']['similarity']
-    if float(similarity) < 0.6:
-        return -1
-    if index_id == 5:
-        return result_dict['data']['pixiv_id']
-    else:
-        return 0
+app.config['SERVER_NAME'] = '39.105.24.101'
+app.config['APPLICATION_ROOT'] = '/bot'
 
 
 def proc_pixiv_fun(command, **kwargs) -> dict:
@@ -122,48 +113,93 @@ def search_img_upload(filename):
     return retval
 
 
+def active_risk_defender(echo):
+    return 'nmsl' + flask.render_template('LBY_DONT_HAVE_MOM.html', image_urls=echo)
+
+
+token_hash = 'fb2a9baab1c23d9786f23ff8708633a63e0e40ff98fa135585ca4491c18193be'
+
+
 @app.route('/upload_imgs/<path:authToken>', methods=['POST', 'GET'])
 def img_uploader(authToken):
     request = flask.request
-    if authToken != 'fb2a9baab1c23d9786f23ff8708633a63e0e40ff98fa135585ca4491c18193be':
-        return flask.render_template('LBY_DONT_HAVE_MOM.html', image_urls=authToken)
+    if authToken != token_hash:
+        return active_risk_defender(authToken)
     elif authToken == 'Undefined':
-        return flask.render_template('LBY_DONT_HAVE_MOM.html', image_urls=2)
+        return active_risk_defender(2)
     if 'image' not in request.files or 'md5' not in request.form or 'ext' not in request.form:
-        return flask.render_template('LBY_DONT_HAVE_MOM.html', image_urls=3)
+        return active_risk_defender(3)
     file = request.files['image']
     md5 = request.form['md5']
     ext = request.form['ext']
     if file.filename == '':
-        return flask.render_template('LBY_DONT_HAVE_MOM.html', image_urls=4)
-    allow_exts = ['jpg', 'jpeg', 'png', 'webp', 'bmp']
-    if ext not in allow_exts:
-        return flask.render_template('LBY_DONT_HAVE_MOM.html', image_urls=5)
+        return active_risk_defender(4)
+    if ext not in ['jpg', 'jpeg', 'png', 'webp', 'bmp']:
+        return active_risk_defender(5)
     if not bool(re.compile(r'^[a-fA-F0-9]{32}$').match(md5)):
-        return flask.render_template('LBY_DONT_HAVE_MOM.html', image_urls=6)
+        return active_risk_defender(6)
     filename = f"{md5}.{ext}"  # 将MD5值和扩展名结合作为文件名
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    search_result = search_img_upload(filename)
-    img_id = extract_useful_id(search_result['result'])
-    return str(img_id)
-    if img_id > 0:
-        result = proc_pixiv_fun('dl', pid=img_id)
-        if result['status'] == 'success':
-            work_list = result['result']
-            img_urls = [flask.url_for('static', filename=f'fpid_temp/{work}') for work in work_list]
-            return flask.render_template('show_img.html', image_urls=img_urls)
+    return filename
+
+
+@app.route(f'/upload_imgs/{token_hash}/<filename>')
+def img_upload_sse_handler(filename):
+    return flask.Response(img_upload_sse_generator(filename), mimetype='text/event-stream')
+
+
+def img_upload_sse_generator(filename):
+    def ret_json(val):
+        return 'data: ' + json.dumps(val) + '\n\n'
+    with app.app_context(), app.test_request_context():
+        response = {
+            'type': 'json',
+            'status': 'async',
+            'echo': '开始请求SauceAPI'
+        }
+        yield ret_json(response)
+        search_result = search_img_upload(filename)
+        img_id = extract_useful_id(search_result['result'])
+        if img_id > 0:
+            response['echo'] = 'SauceAPI已正常返回，正在下载图片'
+            yield ret_json(response)
+            result = proc_pixiv_fun('dl', pid=img_id)
+            if result['status'] == 'success':
+                work_list = result['result']
+                img_urls = [flask.url_for('static', filename=f'fpid_temp/{work}') for work in work_list]
+                response['type'] = 'html'
+                response['status'] = 'success'
+                response['echo'] = flask.render_template('show_img.html', image_urls=img_urls)
+                yield ret_json(response)
+            else:
+                response['status'] = 'error'
+                response['echo'] = f'你的图片没法下载(不一定，可能是太大了)，这是pid:{img_id}'
+                yield ret_json(response)
         else:
-            return f'你的图片没法下载(不一定，可能是太大了)，这是pid:{img_id}'
+            response['status'] = 'error'
+            if img_id == 0:
+                response['echo'] = '未知的索引类型，请联系管理员'
+                yield ret_json(response)
+            elif img_id == -1:
+                response['echo'] = '相似度过低，不予显示'
+                yield ret_json(response)
+            response['echo'] = '未知错误'
+            yield ret_json(response)
+
+
+def extract_useful_id(result_dict) -> int:
+    index_id = result_dict['header']['index_id']
+    similarity = result_dict['header']['similarity']
+    if float(similarity) < 0.6:
+        return -1
+    if index_id == 5:
+        return result_dict['data']['pixiv_id']
     else:
-        if img_id == 0:
-            return 'ERROR'
-        elif img_id == -1:
-            return '相似度过低，不予展示'
+        return 0
 
 
 @app.route('/get_pixiv_img_from_id', methods=['POST'])
 def get_pixiv_img_from_id():
-    storage_path = os.path.join(curdir, 'static/fpid_temp')
     pid = flask.request.form['pid']
     numbers = re.findall(r'\d+', pid)
     # 合并提取出的数字为一个纯数字字符串
@@ -185,31 +221,6 @@ def get_pixiv_img_from_id():
             if result['result'][0] == 'Exceed Limit':
                 return '超过十张，不予下载'
         return str(result)
-
-
-# @app.route('/search_img', methods=['GET', 'POST'])
-# def search_img():
-#     debug = True
-#     if debug:
-#         pic_name = 'yuuka.png'
-#     else:
-#         pic_name = flask.request.form['pic_name']
-#     img_url = flask.url_for('search_temp', filename=pic_name)
-#     host_url = 'http://39.105.24.101'
-#     img_url = host_url + img_url
-#     api_key = 'a71bce7cb564ead10b8924be035c34950d97cde2'
-#     target_url = f'https://saucenao.com/search.php?db=999&api_key={api_key}&output_type=2&numres=16&url={img_url}'
-#     response = requests.get(target_url).json()
-#     if 'results' not in response:
-#         return f'你有问题，拿着下边这个去找管理员<br>{pic_name}'
-#     response = response['results']
-#     responses = response[:3]
-#     for result in responses:
-#         work_id = extract_useful_id(result)
-#         if work_id != 0:
-#             return str(work_id)
-#         else:
-#             return '找不到叻'
 
 
 @app.route('/test_img')
