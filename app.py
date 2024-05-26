@@ -25,11 +25,13 @@ if platform.system() == 'Windows':
 else:
     curdir = '/var/www/webbot'
 
+
 def extract_useful_id(result_dict):
     index_id = result_dict['header']['index_id']
     if index_id == 5:
         return result_dict['data']['pixiv_id']
     return 0
+
 
 def proc_pixiv_fun(command, **kwargs) -> dict:
     message = ''
@@ -60,6 +62,7 @@ def proc_pixiv_fun(command, **kwargs) -> dict:
         message = pixiv_req_socket.recv_json()
     return message
 
+
 @app.route('/')
 def hello():
     img_dir = os.path.join(curdir, 'models/pixiv_download')
@@ -67,6 +70,7 @@ def hello():
     img_name = random.choice(img_list)
     img_url = flask.url_for('random_img', filename=img_name)
     return flask.render_template('index.html', random_img_url=img_url)
+
 
 @app.route('/get_jmid', methods=['POST'])
 def get_jmid():
@@ -90,6 +94,7 @@ def get_jmid():
     else:
         return 'Not Found'
 
+
 @app.route('/get_pixiv_img_from_id', methods=['POST'])
 def get_pixiv_img_from_id():
     storage_path = os.path.join(curdir, 'static/fpid_temp')
@@ -101,7 +106,7 @@ def get_pixiv_img_from_id():
         return '不合法：其中无数字'
     result = proc_pixiv_fun('dl', pid=fmt_pid)
     if result['status'] == 'success':
-        #正常处理逻辑
+        # 正常处理逻辑
         work_list = result['result']
         img_urls = [flask.url_for('static', filename=f'fpid_temp/{work}') for work in work_list]
         return flask.render_template('show_img.html', image_urls=img_urls)
@@ -112,6 +117,7 @@ def get_pixiv_img_from_id():
             if result['result'][0] == 'ページが見つかりませんでした':
                 return '你请求的作品不存在'
         return str(result)
+
 
 @app.route('/search_img', methods=['GET', 'POST'])
 def search_img():
@@ -137,6 +143,7 @@ def search_img():
         else:
             return '找不到叻'
 
+
 @app.route('/test_img')
 def test_img():
     img_urls = [
@@ -144,11 +151,13 @@ def test_img():
     ]
     return flask.render_template('show_img.html', image_urls=img_urls)
 
+
 @app.route('/ajax_test', methods=['POST'])
 def ajax_test():
     data = flask.request.get_json()
     response = {'message': f"Hello, {data['name']}!"}
     return flask.jsonify(response)
+
 
 @app.route('/req_queue', methods=['POST'])
 def req_queue():
@@ -162,13 +171,16 @@ def req_queue():
             response = {'message': f'目前pixiv队列里有{result["result"]}个请求'}
     return flask.jsonify(response)
 
+
 @app.route('/random_img/<path:filename>')
 def random_img(filename):
     return flask.send_from_directory(os.path.join(app.root_path, 'models/pixiv_download'), filename)
 
+
 @app.route('/search_temp/<path:filename>')
 def search_temp(filename):
     return flask.send_from_directory(os.path.join(app.root_path, 'static/search_temp'), filename)
+
 
 @app.route('/test_notify')
 def test_notify():
@@ -180,6 +192,7 @@ def test_notify():
         return '煞笔了吧，而毙'
     else:
         return str(message)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

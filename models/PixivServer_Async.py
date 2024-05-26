@@ -6,50 +6,51 @@ from BetterPixiv_Async import BetterPixiv
 
 
 async def create_action(api: BetterPixiv, command: str, *args) -> dict:
-    respone = {'status': 'success', 'result': []}
+    response = {'status': 'success', 'result': []}
     sudo = False
     if command == 'dl_sudo':
         command = 'dl'
         sudo = True
     if command == 'dl':
         if len(args) < 1:
-            respone['status'] = 'failed'
-            respone['result'] = ['Missing Params']
-            return respone
+            response['status'] = 'failed'
+            response['result'] = ['Missing Params']
+            return response
         work_id = args[0]
         dl_status = await api.download(work_id, sudo=sudo)
-        respone['result'] = dl_status['paths']
+        response['result'] = dl_status['paths']
         if dl_status['total'] == 0 or dl_status['total'] - dl_status['success'] != 0:
-            respone['status'] = 'failed'
-            respone['result'] = [dl_status['extraInfo']]
+            response['status'] = 'failed'
+            response['result'] = [dl_status['extraInfo']]
     elif command == 'user_info':
         # 13371450
         if len(args) < 1:
-            respone['status'] = 'failed'
-            respone['result'] = ['Missing Params']
-            return respone
+            response['status'] = 'failed'
+            response['result'] = ['Missing Params']
+            return response
         user_id = args[0]
         user_info = await api.get_user_works(user_id)
-        respone['result'] = user_info
+        response['result'] = user_info
     elif command == 'favs':
         fav_list = await api.get_favs()
-        respone['result'] = fav_list
+        response['result'] = fav_list
     elif command == 'follow':
         work_list = await api.get_new_works()
-        respone['result'] = work_list
+        response['result'] = work_list
     elif command == 'chk_local':
-        noloacl = await api.get_nolocal_works()
-        respone['result'] = noloacl
+        nolocal = await api.get_nolocal_works()
+        response['result'] = nolocal
     elif command == 'dl_nolocal':
-        noloacl = await api.get_nolocal_works()
-        failed_works = await api.multi_download(noloacl)
-        respone['result'] = failed_works
+        nolocal = await api.get_nolocal_works()
+        failed_works = await api.multi_download(nolocal)
+        response['result'] = failed_works
         if failed_works:
-            respone['status'] = 'failed'
+            response['status'] = 'failed'
     else:
-        respone['status'] = 'failed'
-        respone['result'] = ['Invalid Method']
-    return respone
+        response['status'] = 'failed'
+        response['result'] = ['Invalid Method']
+    return response
+
 
 async def shell_command(queue: asyncio.Queue):
     while True:
@@ -64,6 +65,7 @@ async def shell_command(queue: asyncio.Queue):
             await queue.put({'type': command, 'args': com_args[0]})
         else:
             await queue.put({'type': command, 'args': com_args})
+
 
 async def zmq_server(socket: zmq.Context.socket, queue: asyncio.Queue):
     try:
@@ -96,6 +98,7 @@ async def zmq_server(socket: zmq.Context.socket, queue: asyncio.Queue):
             await queue.put(message)
     except zmq.ZMQError:
         print('服务端下线')
+
 
 async def run_func(socket: zmq.Context.socket, queue: asyncio.Queue):
     api = BetterPixiv(proxy='http://127.0.0.1:10809')

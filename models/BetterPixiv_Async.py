@@ -2,7 +2,6 @@ import asyncio
 import http.client
 import os
 from typing import Awaitable
-
 import aiohttp.client_exceptions
 import urllib3
 from aioconsole import aprint
@@ -39,7 +38,7 @@ class BetterPixiv:
                     await self.api_login(refresh=True)
                     req.clear()
                     req.update(await func)
-                    #raise PixivOAuthError('Access token已过期', interrupted_func=func)
+                    # raise PixivOAuthError('Access token已过期', interrupted_func=func)
             else:
                 raise ConnectionRefusedError(f'错误:{req}')
         return ''
@@ -71,7 +70,7 @@ class BetterPixiv:
                 os.makedirs(path, exist_ok=True)
                 print('未检测到设置的下载目录，已创建')
             except OSError as e:
-                print('目录创建失败，将使用默认目录')
+                print('目录创建失败，将使用默认目录', e)
 
     @staticmethod
     def split_list(lst, num_parts):
@@ -250,7 +249,7 @@ class BetterPixiv:
         except KeyError:
             return fav_list
 
-    async def use_id_check_exsit(self, inner_work_id):
+    async def use_id_check_exist(self, inner_work_id):
         name_list = [f'{inner_work_id}_p0.png', f'{inner_work_id}_p0.jpg',
                      f'{inner_work_id}.jpg', f'{inner_work_id}.png',
                      f'{inner_work_id}_0.png', f'{inner_work_id}_0.jpg']
@@ -272,7 +271,7 @@ class BetterPixiv:
                     return []
                 fmt_favs = [work['id'] for work in favs['illusts']]
                 for work in fmt_favs:
-                    if await self.use_id_check_exsit(work):
+                    if await self.use_id_check_exist(work):
                         return nolocal_list
                     else:
                         nolocal_list.append(work)

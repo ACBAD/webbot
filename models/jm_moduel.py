@@ -3,6 +3,7 @@ from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 import platform
+
 if platform.system() == 'Windows':
     from selenium.webdriver.edge.options import Options
 else:
@@ -91,10 +92,16 @@ class jm_tankobon:
                 print('点击第一个结果')
                 print('等待本子加载')
                 download_button_element = wait.until(EC.presence_of_element_located((By.XPATH,
-                                                                                     "//body/div[@class='container']/div[@class='content']/div[@class='cover-column lillie']/a[@id='dl-button']")))
+                                                                                     "//body/div["
+                                                                                     "@class='container']/div["
+                                                                                     "@class='content']/div["
+                                                                                     "@class='cover-column "
+                                                                                     "lillie']/a[@id='dl-button']")))
 
                 bon_title = wait.until((EC.presence_of_element_located((By.XPATH,
-                                                                        "//body/div[@class='container']/div[@class='content']/div[starts-with(@class, 'gallery')]/h1[@id='gallery-brand']/a"))))
+                                                                        "//body/div[@class='container']/div["
+                                                                        "@class='content']/div[starts-with(@class, "
+                                                                        "'gallery')]/h1[@id='gallery-brand']/a"))))
                 bon_title = bon_title.text
                 download_url = driver.current_url
             except TimeoutException:
@@ -102,6 +109,7 @@ class jm_tankobon:
             finally:
                 driver.quit()
                 return download_url
+
 
 if __name__ == '__main__':
     jm_api = jm_tankobon()

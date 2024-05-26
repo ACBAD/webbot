@@ -1,4 +1,5 @@
-$(document).ready(function() {
+import $ from 'jquery';
+document.addEventListener("DOMContentLoaded", function() {
     $('#form_jmid').on('submit', function(event) {
         event.preventDefault(); // 防止表单默认提交
         $.ajax({
