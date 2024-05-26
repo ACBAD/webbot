@@ -150,7 +150,7 @@ def ajax_test():
     response = {'message': f"Hello, {data['name']}!"}
     return flask.jsonify(response)
 
-@app.route('/req_queue')
+@app.route('/req_queue', methods=['POST'])
 def req_queue():
     data = flask.request.get_json()
     response = {'message': 'error:请联系管理员'}

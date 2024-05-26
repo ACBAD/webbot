@@ -2,6 +2,7 @@ import asyncio
 import http.client
 import os
 from typing import Awaitable
+
 import aiohttp.client_exceptions
 import urllib3
 from aioconsole import aprint
@@ -300,7 +301,7 @@ if __name__ == '__main__':
     async def test():
         api = BetterPixiv(proxy='http://127.0.0.1:10809')
         await api.api_login(refresh_token='a4TF-gC5kRkciAiZ5MhGUoVw6zb3AXO1M1DmnAeFGlk')
-        await aprint(await api.download(99905230523))
+        await aprint(await api.download(114514))
         await api.shutdown()
 
     loop = asyncio.get_event_loop()
