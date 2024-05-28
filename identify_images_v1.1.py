@@ -1,24 +1,6 @@
-#!/usr/bin/env python -u
-# This script requires Python 3+, Requests, and Pillow, a modern fork of PIL, the Python Imaging Library: 'easy_install Pillow' and 'easy_install requests'
-# For Windows easy_install setup, download and run: https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
-# After Installation of easy_install, it will be located in the python scripts directory.
-
-# This is a basic, likley broken example of how to use the very beta saucenao API...
-# There are several signifigant holes in the api, and in the way in which the site responds and reports error conditions.
-# These holes will likley be filled at some point in the future, and it may impact the status checks used below.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#################CONFIG##################
-
-api_key = "!!!REPLACE THIS WITH YOUR API KEY!!!"
-EnableRename = False
-minsim = '80!'  # forcing minsim to 80 is generally safe for complex images, but may miss some edge cases. If images being checked are primarily low detail, such as simple sketches on white paper, increase this to cut down on false positives.
-
-##############END CONFIG#################
 import sys
 import os
 import io
-import unicodedata
 import requests
 from PIL import Image
 import json
@@ -26,6 +8,10 @@ import codecs
 import re
 import time
 from collections import OrderedDict
+
+api_key = "!!!REPLACE THIS WITH YOUR API KEY!!!"
+EnableRename = False
+minsim = '80!'
 
 sys.stdout = codecs.getwriter('utf8')(sys.stdout.detach())
 sys.stderr = codecs.getwriter('utf8')(sys.stderr.detach())
@@ -41,14 +27,12 @@ index_ddbobjects = '0'
 index_ddbsamples = '0'
 index_pixiv = '1'
 index_pixivhistorical = '1'
-index_reserved = '0'
 index_seigaillust = '1'
 index_danbooru = '0'
 index_drawr = '1'
 index_nijie = '1'
 index_yandere = '0'
 index_animeop = '0'
-index_reserved = '0'
 index_shutterstock = '0'
 index_fakku = '0'
 index_hmisc = '0'
@@ -109,7 +93,8 @@ for root, _, files in os.walk(u'.', topdown=False):
                             print('Incorrect or Invalid API Key! Please Edit Script to Configure...')
                             sys.exit(1)
                         else:
-                            # generally non 200 statuses are due to either overloaded servers or the user is out of searches
+                            # generally non 200 statuses are due to either overloaded servers or the user is out of
+                            # searches
                             print("status code: " + str(r.status_code))
                             time.sleep(10)
                     else:
@@ -124,9 +109,10 @@ for root, _, files in os.walk(u'.', topdown=False):
                                 break
                             else:
                                 if int(results['header']['status']) > 0:
-                                    # One or more indexes are having an issue.
-                                    # This search is considered partially successful, even if all indexes failed, so is still counted against your limit.
-                                    # The error may be transient, but because we don't want to waste searches, allow time for recovery.
+                                    # One or more indexes are having an issue. This search is considered partially
+                                    # successful, even if all indexes failed, so is still counted against your limit.
+                                    # The error may be transient, but because we don't want to waste searches,
+                                    # allow time for recovery.
                                     print('API Error. Retrying in 600 seconds...')
                                     time.sleep(600)
                                 else:
@@ -159,7 +145,7 @@ for root, _, files in os.walk(u'.', topdown=False):
                             member_id = -1
                             index_id = results['results'][0]['header']['index_id']
                             page_string = ''
-                            page_match = re.search('(_p[\d]+)\.', results['results'][0]['header']['thumbnail'])
+                            page_match = re.search('(_p\d+)\.', results['results'][0]['header']['thumbnail'])
                             if page_match:
                                 page_string = page_match.group(1)
 

@@ -8,6 +8,7 @@ zmq_socket = zmq_context.socket(zmq.REP)
 zmq_socket.bind('tcp://127.0.0.1:37896')
 jm_api = jm_tankobon()
 
+
 async def zmq_server():
     try:
         while True:
@@ -39,6 +40,7 @@ async def zmq_server():
         zmq_context.term()
         print('shutdown')
 
+
 async def shell():
     while True:
         usr_in = await aioconsole.ainput('Waiting Command')
@@ -47,6 +49,7 @@ async def shell():
             zmq_context.term()
             print('Server shutdown')
             break
+
 
 loop = asyncio.get_event_loop()
 loop.create_task(zmq_server())
