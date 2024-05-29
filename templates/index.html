@@ -9,34 +9,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{{ url_for('static', filename='js/check_queue.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
-    <script>
-        function getCookie(name) {
-            let cookieArr = document.cookie.split(";");
-            for (let i = 0; i < cookieArr.length; i++) {
-                let cookiePair = cookieArr[i].split("=");
-                if (name == cookiePair[0].trim()) {return decodeURIComponent(cookiePair[1]);}
-            }
-            return null;
-        }
-        function sha256(message) {return CryptoJS.SHA256(message).toString(CryptoJS.enc.Hex);}
-        function setFormAction() {
-            document.getElementById('upload_msg').innerText = "正在拼接链接";
-            let cookieName = "authToken";
-            let cookieValue = getCookie(cookieName);
-            document.getElementById("upload_msg").innerText = cookieValue;
-            if (cookieValue) {
-                let hashedValue = sha256(cookieValue);
-                document.getElementById('upload_msg').innerText = hashedValue;
-                document.getElementById("uploadForm").action = "/bot/upload_imgs/" + hashedValue;
-                document.getElementById('upload_msg').innerText = "链接拼接完成";
-            } else {
-                document.getElementById('upload_msg').innerText = "你没设置Token";
-                document.getElementById("uploadForm").action = "/bot/upload_imgs/Undefined";
-                //alert('你没设置Token');
-            }
-        }
-        window.onload = function () {setFormAction();};
-    </script>
 </head>
 <body>
 <header>
@@ -72,7 +44,7 @@
     </form>
     <div id="upload_msg"></div>
     <!--
-    <h1>随机美图</h1>
+    <h1>随机涩图</h1>
     <img alt="Image" src="{{ random_img_url }}" style="width:400px;height:auto;">
     <br>
     <h1><a download href="{{ random_img_url }}">下载图片</a></h1>
@@ -84,18 +56,6 @@
     </form>
     <div id="auth_msg"></div>
 </div>
-
-<script>
-    function setCookie(name, value) {
-        const expires = "Fri, 31 Dec 9999 23:59:59 GMT";
-        document.cookie = name + "=" + (value || "") + "; expires=" + expires + "; path=/";
-    }
-    function handleFormSubmit(event) {
-        event.preventDefault();
-        let inputValue = document.getElementById('auth_token').value;
-        setCookie('authToken', inputValue);
-        document.getElementById('auth_msg').innerHTML = '你的AuthToken已保存';
-    }
-</script>
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 </body>
 </html>
