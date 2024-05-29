@@ -145,6 +145,7 @@ def img_uploader(authToken):
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     search_result = search_img_upload(filename)
     img_id = extract_useful_id(search_result['result'])
+    return str(img_id)
     if img_id > 0:
         result = proc_pixiv_fun('dl', pid=img_id)
         if result['status'] == 'success':
@@ -158,7 +159,6 @@ def img_uploader(authToken):
             return 'ERROR'
         elif img_id == -1:
             return '相似度过低，不予展示'
-        return f'Unkonwn ERROR:{img_id}'
 
 
 @app.route('/get_pixiv_img_from_id', methods=['POST'])
