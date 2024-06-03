@@ -6,6 +6,7 @@ import re
 import flask
 import requests
 import zmq
+from PIL import Image, ImageDraw, ImageFont
 
 app = flask.Flask(__name__)
 zmq_context = zmq.Context()
@@ -105,6 +106,7 @@ def redirect_to_hitomi_handler():
     def redirect_to_hitomi(jm_str):
         def ret_json(val):
             return 'data: ' + json.dumps(val) + '\n\n'
+
         if not jm_str:
             return active_risk_defender('redirect_to_hitomi')
         response = {
@@ -147,6 +149,7 @@ def redirect_to_hitomi_handler():
             response['status'] = 'error'
             response['echo'] = f'Not Found:{jm_str}'
             yield ret_json(response)
+
     try:
         return flask.Response(redirect_to_hitomi(flask.request.args.get('jm_str', '')), mimetype='text/event-stream')
     except OSError as e:
@@ -244,6 +247,7 @@ def img_upload_sse_handler(filename):
                     yield ret_json(response)
                 response['echo'] = '未知错误'
                 yield ret_json(response)
+
     return flask.Response(img_upload_sse_generator(filename), mimetype='text/event-stream')
 
 
@@ -302,6 +306,35 @@ def req_queue():
         if result['status'] == 'success':
             response = {'message': f'目前pixiv队列里有{result["result"]}个请求'}
     return flask.jsonify(response)
+
+
+def get_ip_location(ip):
+    url = f"https://opendata.baidu.com/api.php?query={ip}&co=&resource_id=6006&oe=utf8"
+    response = requests.get(url)
+    data = response.json()
+    if data['status'] == '0':
+        return {
+            'location': data['data'][0]['location'],
+        }
+    else:
+        return None
+
+
+@app.route('/welcome_png')
+def generate_welcome_png():
+    user_ip = flask.request.remote_addr
+    ip_location = get_ip_location(user_ip)
+    if ip_location:
+        welcome_text = f'欢迎来自{ip_location["location"].split(" ")[0]}的朋友'
+    else:
+        welcome_text = '不知道你是哪的'
+    welcome_img = Image.new('RGBA', (1000, 100))
+    draw = ImageDraw.Draw(welcome_img)
+    font = ImageFont.truetype("SIMYOU.TTF", 72)
+    draw.text((0, 0), welcome_text, font=font, fill=(255, 255, 255))
+    if not os.path.exists(f'{welcome_text}.png'):
+        welcome_img.save(f'{welcome_text}.png')
+    return flask.send_from_directory(os.path.join(app.root_path, 'welcome_imgs'), f'{welcome_text}.png')
 
 
 @app.route('/random_img/<path:filename>')
