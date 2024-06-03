@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import platform
@@ -332,9 +333,10 @@ def generate_welcome_png():
     draw = ImageDraw.Draw(welcome_img)
     font = ImageFont.truetype(os.path.join(app.root_path, 'SIMYOU.TTF'), 72)
     draw.text((0, 0), welcome_text, font=font, fill=(255, 255, 255))
-    if not os.path.exists(f'{welcome_text}.png'):
-        welcome_img.save(f'{welcome_text}.png')
-    return flask.send_from_directory(os.path.join(app.root_path, 'welcome_imgs'), f'{welcome_text}.png')
+    md5_hash = hashlib.md5(welcome_text.encode('utf-8')).hexdigest()
+    if not os.path.exists(f'{md5_hash}.png'):
+        welcome_img.save(f'{md5_hash}.png')
+    return flask.send_from_directory(os.path.join(app.root_path, 'welcome_imgs'), f'{md5_hash}.png')
 
 
 @app.route('/random_img/<path:filename>')
