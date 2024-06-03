@@ -138,8 +138,8 @@ def redirect_to_hitomi_handler():
                 return ret_json(response)
         else:
             response['status'] = 'error'
-            response['echo'] = 'Not Found'
-            yield ret_json(response)
+            response['echo'] = f'Not Found:{jm_result}'
+            return ret_json(response)
     return flask.Response(redirect_to_hitomi(flask.request.args.get('jm_str', '')), mimetype='text/event-stream')
 
 
