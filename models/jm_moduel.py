@@ -33,7 +33,7 @@ class jm_tankobon:
             album: jmcomic.JmAlbumDetail = page.single_album
             return album.title
         else:
-            print('无法解析的JM号')
+            print(f'无法解析的JM号{jmid}')
             return ''
 
     def get_pure_name(self, jmid):
