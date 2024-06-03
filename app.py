@@ -334,8 +334,9 @@ def generate_welcome_png():
     font = ImageFont.truetype(os.path.join(app.root_path, 'SIMYOU.TTF'), 72)
     draw.text((0, 0), welcome_text, font=font, fill=(255, 255, 255))
     md5_hash = hashlib.md5(welcome_text.encode('utf-8')).hexdigest()
-    if not os.path.exists(f'{md5_hash}.png'):
-        welcome_img.save(f'{md5_hash}.png')
+    img_path = os.path.join(app.root_path, f'welcome_imgs/{md5_hash}.png')
+    if not os.path.exists(img_path):
+        welcome_img.save(img_path)
     return flask.send_from_directory(os.path.join(app.root_path, 'welcome_imgs'), f'{md5_hash}.png')
 
 
