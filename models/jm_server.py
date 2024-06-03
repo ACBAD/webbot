@@ -1,4 +1,4 @@
-from models.jm_moduel import jm_tankobon
+from jm_moduel import jm_tankobon
 import zmq
 import asyncio
 import aioconsole
