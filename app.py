@@ -329,7 +329,7 @@ def generate_welcome_png():
         welcome_text = f'欢迎来自{ip_location["location"].split(" ")[0]}的朋友'
     else:
         welcome_text = '不知道你是哪的'
-    welcome_img = Image.new('RGBA', (1000, 100))
+    welcome_img = Image.new('RGBA', (1000, 90))
     draw = ImageDraw.Draw(welcome_img)
     font = ImageFont.truetype(os.path.join(app.root_path, 'SIMYOU.TTF'), 72)
     draw.text((0, 0), welcome_text, font=font, fill=(255, 255, 255))
