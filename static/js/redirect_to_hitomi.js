@@ -6,8 +6,6 @@ function set_button(action){
 }
 let msgbox = $('#jm_ajax_response');
 redirect_button.addEventListener('click', function () {
-    msgbox.text('Developing...')
-    return;
     set_button(true);
     if(typeof(EventSource)!=='undefined'){
         const jm_str = $('#jmid').value;

@@ -32,8 +32,6 @@ else:
     curdir = '/var/www/webbot'
 
 app.config['UPLOAD_FOLDER'] = os.path.join(curdir, 'uploads')
-app.config['SERVER_NAME'] = '39.105.24.101'
-app.config['APPLICATION_ROOT'] = '/bot'
 
 
 def proc_pixiv_fun(command, **kwargs) -> dict:
@@ -128,7 +126,15 @@ def redirect_to_hitomi():
         yield ret_json(response)
         socks = dict(poller.poll(300000))
         if hitomi_notify_socket in socks:
-            req_result = hitomi_notify_socket.recv_json()
+            req_result: list[dict] = hitomi_notify_socket.recv_json()
+        else:
+            response['echo'] = '不用等了，寄了'
+            return ret_json(response)
+        if req_result:
+            gallery = req_result[0]
+            response['echo'] = gallery['galleryurl']
+            response['type'] = 'html'
+            return ret_json(response)
     else:
         response['status'] = 'error'
         response['echo'] = 'Not Found'
@@ -190,6 +196,7 @@ def img_upload_sse_handler(filename):
     return flask.Response(img_upload_sse_generator(filename), mimetype='text/event-stream')
 
 
+@flask.copy_current_request_context
 def img_upload_sse_generator(filename):
     def ret_json(val):
         return 'data: ' + json.dumps(val) + '\n\n'

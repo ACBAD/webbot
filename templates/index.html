@@ -50,14 +50,15 @@
     <br>
     <h1><a download href="{{ random_img_url }}">下载图片</a></h1>
 
-    <form onsubmit="handleFormSubmit(event)">
+    <form >
         <label for="auth_token">输入auth_token:</label>
         <input type="text" id="auth_token" name="token_inputter" required>
-        <button type="submit">提交</button>
+        <button type="submit" id="set_auth_button">提交</button>
     </form>
     <div id="auth_msg"></div>
 </div>
 <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
 <script src="{{ url_for('static', filename='js/set_auth.js') }}"></script>
+<script src="{{ url_for('static', filename='js/redirect_to_hitomi.js') }}"></script>
 </body>
 </html>
