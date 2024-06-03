@@ -193,48 +193,46 @@ def img_uploader(authToken):
 
 @app.route(f'/upload_imgs/{token_hash}/<filename>')
 def img_upload_sse_handler(filename):
-    return flask.Response(img_upload_sse_generator(filename), mimetype='text/event-stream')
+    @flask.copy_current_request_context
+    def img_upload_sse_generator(inner_filename):
+        def ret_json(val):
+            return 'data: ' + json.dumps(val) + '\n\n'
 
-
-@flask.copy_current_request_context
-def img_upload_sse_generator(filename):
-    def ret_json(val):
-        return 'data: ' + json.dumps(val) + '\n\n'
-
-    with app.app_context(), app.test_request_context():
-        response = {
-            'type': 'json',
-            'status': 'async',
-            'echo': '开始请求SauceAPI'
-        }
-        yield ret_json(response)
-        search_result = search_img_upload(filename)
-        img_id = extract_useful_id(search_result['result'])
-        if img_id > 0:
-            response['echo'] = 'SauceAPI已正常返回，正在下载图片'
+        with app.app_context(), app.test_request_context():
+            response = {
+                'type': 'json',
+                'status': 'async',
+                'echo': '开始请求SauceAPI'
+            }
             yield ret_json(response)
-            result = proc_pixiv_fun('dl', pid=img_id)
-            if result['status'] == 'success':
-                work_list = result['result']
-                img_urls = [flask.url_for('static', filename=f'fpid_temp/{work}') for work in work_list]
-                response['type'] = 'html'
-                response['status'] = 'success'
-                response['echo'] = flask.render_template('show_img.html', image_urls=img_urls)
+            search_result = search_img_upload(inner_filename)
+            img_id = extract_useful_id(search_result['result'])
+            if img_id > 0:
+                response['echo'] = 'SauceAPI已正常返回，正在下载图片'
                 yield ret_json(response)
+                result = proc_pixiv_fun('dl', pid=img_id)
+                if result['status'] == 'success':
+                    work_list = result['result']
+                    img_urls = [flask.url_for('static', filename=f'fpid_temp/{work}') for work in work_list]
+                    response['type'] = 'html'
+                    response['status'] = 'success'
+                    response['echo'] = flask.render_template('show_img.html', image_urls=img_urls)
+                    yield ret_json(response)
+                else:
+                    response['status'] = 'error'
+                    response['echo'] = f'你的图片没法下载(不一定，可能是太大了)，这是pid:{img_id}'
+                    yield ret_json(response)
             else:
                 response['status'] = 'error'
-                response['echo'] = f'你的图片没法下载(不一定，可能是太大了)，这是pid:{img_id}'
+                if img_id == 0:
+                    response['echo'] = '未知的索引类型，请联系管理员'
+                    yield ret_json(response)
+                elif img_id == -1:
+                    response['echo'] = '相似度过低，不予显示'
+                    yield ret_json(response)
+                response['echo'] = '未知错误'
                 yield ret_json(response)
-        else:
-            response['status'] = 'error'
-            if img_id == 0:
-                response['echo'] = '未知的索引类型，请联系管理员'
-                yield ret_json(response)
-            elif img_id == -1:
-                response['echo'] = '相似度过低，不予显示'
-                yield ret_json(response)
-            response['echo'] = '未知错误'
-            yield ret_json(response)
+    return flask.Response(img_upload_sse_generator(filename), mimetype='text/event-stream')
 
 
 def extract_useful_id(result_dict) -> int:
