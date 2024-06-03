@@ -12,11 +12,16 @@ zmq_context = zmq.Context()
 jm_socket = zmq_context.socket(zmq.REQ)
 pixiv_notify_socket = zmq_context.socket(zmq.SUB)
 pixiv_req_socket = zmq_context.socket(zmq.REQ)
-pixiv_notify_socket.setsockopt_string(zmq.SUBSCRIBE, '')  # 订阅所有消息
+pixiv_notify_socket.setsockopt_string(zmq.SUBSCRIBE, '')
+hitomi_req_socket = zmq_context.socket(zmq.REQ)
+hitomi_notify_socket = zmq_context.socket(zmq.SUB)
+hitomi_notify_socket.setsockopt_string(zmq.SUBSCRIBE, '')
 
 jm_socket.connect('tcp://localhost:37896')
 pixiv_notify_socket.connect("tcp://localhost:5556")
 pixiv_req_socket.connect("tcp://localhost:5555")
+hitomi_req_socket.connect('tcp://localhost:37980')
+hitomi_notify_socket.connect('tcp://localhost:37890')
 
 poller = zmq.Poller()
 poller.register(pixiv_notify_socket, zmq.POLLIN)
@@ -71,8 +76,11 @@ def hello():
 
 
 @app.route('/get_jmid', methods=['POST'])
-def get_jmid():
-    jm_id = flask.request.form['jmid']
+def get_jmid(jm_str=''):
+    if jm_str:
+        jm_id = jm_str
+    else:
+        jm_id = flask.request.form['jmid']
     numbers = re.findall(r'\d+', jm_id)
     # 合并提取出的数字为一个纯数字字符串
     fmt_jmid = ''.join(numbers)
@@ -91,6 +99,40 @@ def get_jmid():
         return f'{pure_rep["result"]}<br>{ori_rep["result"]}'
     else:
         return 'Not Found'
+
+
+@app.route('/redirect_to_hitomi', methods=['GET'])
+def redirect_to_hitomi():
+    def ret_json(val):
+        return 'data: ' + json.dumps(val) + '\n\n'
+    jm_str = flask.request.args.get('jm_str', '')
+    if not jm_str:
+        return active_risk_defender('redirect_to_hitomi')
+    response = {
+        'type': 'json',
+        'status': 'async',
+        'echo': '已收到你的请求'
+    }
+    yield ret_json(response)
+    jm_result = get_jmid(jm_str)
+    if '<br>' in jm_result:
+        jm_name = jm_result.split('<br>')[0]
+        response['echo'] = f'已获得本名:{jm_name}'
+        yield ret_json(response)
+        hitomi_req_socket.send_json({'type': 'check_queue'})
+        resp = hitomi_req_socket.recv_json()
+        response['echo'] = f'当前hitomi队列有{resp["result"]}个请求'
+        yield ret_json(response)
+        hitomi_req_socket.send_json({'type': 'search', 'query_str': jm_name})
+        response['echo'] = '请求已发送，耐心等待，寄了我会告诉你的'
+        yield ret_json(response)
+        socks = dict(poller.poll(300000))
+        if hitomi_notify_socket in socks:
+            req_result = hitomi_notify_socket.recv_json()
+    else:
+        response['status'] = 'error'
+        response['echo'] = 'Not Found'
+        yield ret_json(response)
 
 
 def search_img_upload(filename):
@@ -151,6 +193,7 @@ def img_upload_sse_handler(filename):
 def img_upload_sse_generator(filename):
     def ret_json(val):
         return 'data: ' + json.dumps(val) + '\n\n'
+
     with app.app_context(), app.test_request_context():
         response = {
             'type': 'json',

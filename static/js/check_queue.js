@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function() {
     $('#form_jmid').on('submit', function(event) {
         event.preventDefault(); // 防止表单默认提交
         $('#jm_submit_button').prop('disabled', true);
+        $('#redirect_to_hitomi').prop('disabled', true);
         $.ajax({
             type: 'POST',
             url: '/bot/req_queue',

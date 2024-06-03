@@ -52,7 +52,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
             }
             if(typeof(EventSource)!=='undefined'){
                 let source = new EventSource(req_url + '/' + response);
-                source.onopen = function (enent){
+                source.onopen = function (){
                     document.getElementById('upload_msg').innerText = 'SSE链接已建立';
                 }
                 source.onmessage = function (event){
@@ -75,7 +75,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
                     }
                     else document.getElementById('upload_msg').innerText = '服务器返回了无法解析的信息...';
                 };
-                source.onerror = function (evnet){
+                source.onerror = function (){
                     document.getElementById('upload_msg').innerText = 'SSE链接发生错误';
                     console.error('EventSource failed:' , event);
                     source.close();
