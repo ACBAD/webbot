@@ -8,7 +8,7 @@ let msgbox = $('#jm_ajax_response');
 redirect_button.addEventListener('click', function () {
     set_button(true);
     if(typeof(EventSource)!=='undefined'){
-        const jm_str = $('#jmid').value;
+        const jm_str = document.getElementById('jmid').value;
         let source = new EventSource('/bot/redirect_to_hitomi?jm_str=' + jm_str);
         source.onopen = function (){
             msgbox.text('SSE链接已建立');
