@@ -135,11 +135,11 @@ def redirect_to_hitomi_handler():
                 gallery = req_result[0]
                 response['echo'] = gallery['galleryurl']
                 response['type'] = 'html'
-                return ret_json(response)
+                yield ret_json(response)
         else:
             response['status'] = 'error'
             response['echo'] = f'Not Found:{jm_str}'
-            return ret_json(response)
+            yield ret_json(response)
     try:
         return flask.Response(redirect_to_hitomi(flask.request.args.get('jm_str', '')), mimetype='text/event-stream')
     except OSError as e:
