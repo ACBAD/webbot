@@ -100,45 +100,47 @@ def get_jmid(jm_str=''):
 
 
 @app.route('/redirect_to_hitomi', methods=['GET'])
-def redirect_to_hitomi():
-    def ret_json(val):
-        return 'data: ' + json.dumps(val) + '\n\n'
-    jm_str = flask.request.args.get('jm_str', '')
-    if not jm_str:
-        return active_risk_defender('redirect_to_hitomi')
-    response = {
-        'type': 'json',
-        'status': 'async',
-        'echo': '已收到你的请求'
-    }
-    yield ret_json(response)
-    jm_result = get_jmid(jm_str)
-    if '<br>' in jm_result:
-        jm_name = jm_result.split('<br>')[0]
-        response['echo'] = f'已获得本名:{jm_name}'
+def redirect_to_hitomi_handler():
+    @flask.copy_current_request_context
+    def redirect_to_hitomi(jm_str):
+        def ret_json(val):
+            return 'data: ' + json.dumps(val) + '\n\n'
+        if not jm_str:
+            return active_risk_defender('redirect_to_hitomi')
+        response = {
+            'type': 'json',
+            'status': 'async',
+            'echo': '已收到你的请求'
+        }
         yield ret_json(response)
-        hitomi_req_socket.send_json({'type': 'check_queue'})
-        resp = hitomi_req_socket.recv_json()
-        response['echo'] = f'当前hitomi队列有{resp["result"]}个请求'
-        yield ret_json(response)
-        hitomi_req_socket.send_json({'type': 'search', 'query_str': jm_name})
-        response['echo'] = '请求已发送，耐心等待，寄了我会告诉你的'
-        yield ret_json(response)
-        socks = dict(poller.poll(300000))
-        if hitomi_notify_socket in socks:
-            req_result: list[dict] = hitomi_notify_socket.recv_json()
+        jm_result = get_jmid(jm_str)
+        if '<br>' in jm_result:
+            jm_name = jm_result.split('<br>')[0]
+            response['echo'] = f'已获得本名:{jm_name}'
+            yield ret_json(response)
+            hitomi_req_socket.send_json({'type': 'check_queue'})
+            resp = hitomi_req_socket.recv_json()
+            response['echo'] = f'当前hitomi队列有{resp["result"]}个请求'
+            yield ret_json(response)
+            hitomi_req_socket.send_json({'type': 'search', 'query_str': jm_name})
+            response['echo'] = '请求已发送，耐心等待，寄了我会告诉你的'
+            yield ret_json(response)
+            socks = dict(poller.poll(300000))
+            if hitomi_notify_socket in socks:
+                req_result: list[dict] = hitomi_notify_socket.recv_json()
+            else:
+                response['echo'] = '不用等了，寄了'
+                return ret_json(response)
+            if req_result:
+                gallery = req_result[0]
+                response['echo'] = gallery['galleryurl']
+                response['type'] = 'html'
+                return ret_json(response)
         else:
-            response['echo'] = '不用等了，寄了'
-            return ret_json(response)
-        if req_result:
-            gallery = req_result[0]
-            response['echo'] = gallery['galleryurl']
-            response['type'] = 'html'
-            return ret_json(response)
-    else:
-        response['status'] = 'error'
-        response['echo'] = 'Not Found'
-        yield ret_json(response)
+            response['status'] = 'error'
+            response['echo'] = 'Not Found'
+            yield ret_json(response)
+    return flask.Response(redirect_to_hitomi(flask.request.args.get('jm_str', '')))
 
 
 def search_img_upload(filename):
