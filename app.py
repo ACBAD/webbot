@@ -128,16 +128,21 @@ def redirect_to_hitomi_handler():
             response['echo'] = '请求已发送，耐心等待，寄了我会告诉你的'
             yield ret_json(response)
             socks = dict(poller.poll(300000))
+            response['echo'] = '等待到了socks'
+            yield ret_json(response)
             if hitomi_notify_socket in socks:
-                req_result: list[dict] = hitomi_notify_socket.recv_json()
+                req_result: dict = hitomi_notify_socket.recv_json()
             else:
                 response['echo'] = '不用等了，寄了'
                 return ret_json(response)
-            if req_result:
+            if req_result['status'] == 'success':
                 gallery = req_result[0]
                 response['echo'] = gallery['galleryurl']
                 response['type'] = 'html'
                 yield ret_json(response)
+            else:
+                response['echo'] = '没找到'
+                return ret_json(response)
         else:
             response['status'] = 'error'
             response['echo'] = f'Not Found:{jm_str}'
