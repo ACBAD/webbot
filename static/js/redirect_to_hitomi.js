@@ -31,6 +31,7 @@ redirect_button.addEventListener('click', function () {
             msgbox.text('SSE链接发生错误')
             console.error('SSE ERROR: ', ev);
             source.close();
+            set_button(false);
         }
     }
     else {
