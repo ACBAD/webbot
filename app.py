@@ -114,6 +114,8 @@ def redirect_to_hitomi_handler():
         }
         yield ret_json(response)
         jm_result = get_jmid(jm_str)
+        response['echo'] = '函数执行完成'
+        yield ret_json(response)
         if '<br>' in jm_result:
             jm_name = jm_result.split('<br>')[0]
             response['echo'] = f'已获得本名:{jm_name}'
