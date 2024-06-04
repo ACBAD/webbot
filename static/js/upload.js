@@ -17,10 +17,15 @@ function calculat_hask_token() {
     if (cookieValue) {
         token_hash = sha256(cookieValue);
         document.getElementById('upload_msg').innerText = "鉴权令牌计算完成";
-    } else {token_hash = 'Undefined';}
+    } else {
+        token_hash = 'Undefined';
+        document.getElementById('setu').hidden = true;
+    }
     return token_hash;
 }
-window.onload = function () {calculat_hask_token();};
+window.onload = function () {
+    calculat_hask_token();
+};
 
 
 document.getElementById('uploadForm').addEventListener('submit', async function(event) {

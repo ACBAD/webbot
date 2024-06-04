@@ -48,12 +48,12 @@
         <button type="submit" id="upload_submit_button">上传</button>
     </form>
     <div id="upload_msg"></div>
-
-    <h1>随机涩图</h1>
-    <img alt="Image" src="{{ random_img_url }}" style="width:400px;height:auto;">
-    <br>
-    <h1><a download href="{{ random_img_url }}">下载图片</a></h1>
-
+    <div id="setu">
+        <h1>随机涩图</h1>
+        <img alt="Image" src="{{ random_img_url }}" style="width:400px;height:auto;">
+        <br>
+        <h1><a download href="{{ random_img_url }}">下载图片</a></h1>
+    </div>
     <form >
         <label for="auth_token">输入auth_token:</label>
         <input type="text" id="auth_token" name="token_inputter" required>
