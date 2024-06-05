@@ -321,21 +321,21 @@ def get_ip_location(ip):
         return None
 
 
-@app.route('/welcome_png')
-def generate_welcome_png():
+@app.route('/welcome_img')
+def generate_welcome_img():
     user_ip = flask.request.remote_addr
     ip_location = get_ip_location(user_ip)
     if ip_location:
         welcome_text = f'欢迎来自{ip_location["location"].split(" ")[0]}的朋友'
     else:
         welcome_text = '不知道你是哪的'
-    welcome_img = Image.new('RGBA', (1000, 90))
-    draw = ImageDraw.Draw(welcome_img)
-    font = ImageFont.truetype(os.path.join(app.root_path, 'SIMYOU.TTF'), 72)
-    draw.text((0, 0), welcome_text, font=font, fill=(255, 255, 255))
     md5_hash = hashlib.md5(welcome_text.encode('utf-8')).hexdigest()
     img_path = os.path.join(app.root_path, f'welcome_imgs/{md5_hash}.png')
     if not os.path.exists(img_path):
+        welcome_img = Image.new('RGBA', (1000, 90))
+        draw = ImageDraw.Draw(welcome_img)
+        font = ImageFont.truetype(os.path.join(app.root_path, 'SIMYOU.TTF'), 72)
+        draw.text((0, 0), welcome_text, font=font, fill=(255, 255, 255))
         welcome_img.save(img_path)
     return flask.send_from_directory(os.path.join(app.root_path, 'welcome_imgs'), f'{md5_hash}.png')
 
