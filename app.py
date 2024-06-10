@@ -1,5 +1,6 @@
 import hashlib
 import json
+import mimetypes
 import os
 import platform
 import random
@@ -8,6 +9,7 @@ import flask
 import requests
 import zmq
 from PIL import Image, ImageDraw, ImageFont
+from werkzeug.utils import secure_filename
 
 app = flask.Flask(__name__)
 zmq_context = zmq.Context()
@@ -342,12 +344,17 @@ def generate_welcome_img():
 
 @app.route('/random_img/<path:filename>')
 def random_img(filename):
-    return flask.send_from_directory(os.path.join(app.root_path, 'models/pixiv_download'), filename)
+    return flask.send_from_directory(os.path.join(app.root_path, 'models/pixiv_download'), filename, mimetypes=['image/png'])
 
 
 @app.route('/search_temp/<path:filename>')
 def search_temp(filename):
-    return flask.send_from_directory(os.path.join(app.root_path, 'static/search_temp'), filename)
+    filename = secure_filename(filename)
+    file_path = os.path.join(app.root_path, 'static/search_temp', filename)
+    if not os.path.exists(file_path):
+        flask.abort(404)  # Return a 404 error if the file does not exist
+    mime_type, _ = mimetypes.guess_type(file_path)
+    return flask.send_from_directory(os.path.join(app.root_path, 'static/search_temp'), filename, mimetype=mime_type)
 
 
 @app.route('/upload_temp/<path:filename>')
