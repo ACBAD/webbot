@@ -345,7 +345,7 @@ def generate_welcome_img():
 @app.route('/random_img/<path:filename>')
 def random_img(filename):
     filename = secure_filename(filename)
-    file_path = os.path.join(app.root_path, 'static/search_temp', filename)
+    file_path = os.path.join(app.root_path, 'models/pixiv_download', filename)
     if not os.path.exists(file_path):
         flask.abort(404)  # Return a 404 error if the file does not exist
     mime_type, _ = mimetypes.guess_type(file_path)
