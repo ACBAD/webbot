@@ -48,9 +48,6 @@ def check_bot_ability():
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
 
-    if not processes:
-        return False
-
     service_status = {'jm': False, 'pixiv': False}
 
     for proc in processes:
