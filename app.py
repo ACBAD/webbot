@@ -6,6 +6,7 @@ import platform
 import random
 import re
 import flask
+import psutil
 import requests
 import zmq
 from PIL import Image, ImageDraw, ImageFont
@@ -36,6 +37,30 @@ else:
     curdir = '/var/www/webbot'
 
 app.config['UPLOAD_FOLDER'] = os.path.join(curdir, 'uploads')
+
+
+def check_bot_ability():
+    processes = []
+    for iproc in psutil.process_iter(['pid', 'name']):
+        try:
+            if 'python3' in iproc.name():
+                processes.append(iproc)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+
+    if not processes:
+        return False
+
+    service_status = {'jm': False, 'pixiv': False}
+
+    for proc in processes:
+        proc_cmd = proc.cmdline()
+        if proc_cmd[0] == 'python3':
+            if proc_cmd[1] == 'jm_server.py':
+                service_status['jm'] = True
+            elif proc_cmd[1] == 'PixivServer_Async.py':
+                service_status['pixiv'] = True
+    return service_status
 
 
 def proc_pixiv_fun(command, **kwargs) -> dict:
@@ -325,12 +350,21 @@ def get_ip_location(ip):
 
 @app.route('/welcome_img')
 def generate_welcome_img():
-    user_ip = flask.request.remote_addr
-    ip_location = get_ip_location(user_ip)
-    if ip_location:
-        welcome_text = f'欢迎来自{ip_location["location"].split(" ")[0]}的朋友'
+    service_status = check_bot_ability()
+    if not all(service_status.values()):
+        welcome_text = '快去通知管理员，'
+        if not service_status['jm']:
+            welcome_text += 'jm '
+        if not service_status['pixiv']:
+            welcome_text += 'pixiv '
+        welcome_text += '挂b了'
     else:
-        welcome_text = '不知道你是哪的'
+        user_ip = flask.request.remote_addr
+        ip_location = get_ip_location(user_ip)
+        if ip_location:
+            welcome_text = f'欢迎来自{ip_location["location"].split(" ")[0]}的朋友'
+        else:
+            welcome_text = '不知道你是哪的'
     md5_hash = hashlib.md5(welcome_text.encode('utf-8')).hexdigest()
     img_path = os.path.join(app.root_path, f'welcome_imgs/{md5_hash}.png')
     if not os.path.exists(img_path):
